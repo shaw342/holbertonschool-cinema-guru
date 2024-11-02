@@ -1,50 +1,93 @@
-
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import Input from './routes/general/Input';
-import SelectInput from './routes/general/SelectInput';
-import Button from './routes/general/button';
-import SearchBar from './routes/general/SearchBar';
 import axios from 'axios';
+import Input from './components/general/Input';
+import SelectInput from './components/general/SelectInput';
+import Button from './components/general/Button';
+import SearchBar from './components/general/SearchBar';
+import { faUser, faCheck } from '@fortawesome/free-solid-svg-icons';
+
+
+import Authentication from './routes/auth/Authentication';
+
 
 
 function App() {
-  const option = ["Latest","Oldest","Highest","Lowest Rated"]
-  const [value,setInputValue] = useState("")
-  const [selectValue,setSelectValue] = useState("")
-  const [title,setTitle] = useState("")
-  const [isLoggedIn,setIsLoggedIn] = useState(false)
-  const [username,setUsername] = useState("")
-  useEffect(()=>{
-    const accessToken  = localStorage.getItem("accessToken")
-    if (accessToken){
-      const authenticate = async ()=>{
-        try {
-          const reponse = await axios.post("/api/auth",{},{
-            headers:{
-              "Authorization":`Bearer ${accessToken}`
-            }
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [setUserUsername] = useState('');
+  const [inputValue, setInputValue] = useState('');
+  const [selectValue, setSelectValue] = useState('');
+  const [searchTitle, setSearchTitle] = useState('');
+
+  useEffect(() => {
+      const accessToken = localStorage.getItem('accessToken');
+
+      if (accessToken) {
+          axios.post('/api/auth/', {}, {
+              headers: {
+                  'Authorization': `Bearer ${accessToken}`
+              }
           })
-          setIsLoggedIn(true)
-          setUsername(reponse.data.username)
-        } catch (error) {
-
-          console.log(error);
-          
-          
-        }
+          .then(response => {
+              setIsLoggedIn(true);
+              setUserUsername(response.data.username);
+          })
+          .catch(error => {
+              console.error('Error during authentication:', error);
+              setIsLoggedIn(false);
+          });
       }
-      authenticate()
-    }
+  }, [setUserUsername]);
 
-  },[])
+  const handleButtonClick = () => {
+      alert('Button clicked!');
+  };
+
+  if (!isLoggedIn) {
+      return (
+     
+      <Authentication />
+      
+      )
+  }
+
   return (
-    <div className="App">
-      <Input label="username" type="username" className="email" value={value} setvalue={setInputValue} />
-      <SelectInput className="Sort" label="Sort" option={option} value={selectValue} setValue={setSelectValue} />
-      <Button className="Button-load" label="Load More.." />
-      <SearchBar value={title}  setvalue={setTitle}/>
-    </div>
+      <div className="App">
+          <Input
+              label="Username"
+              type="text"
+              className="custom-class"
+              value={inputValue}
+              setValue={setInputValue}
+              icon={faUser}
+              inputAttributes={{ placeholder: 'Enter your username' }}
+          />
+          <SelectInput
+              label="Options"
+              options={[
+                  { value: '', label: 'Select an option' },
+                  { value: 'option1', label: 'Option 1' },
+                  { value: 'option2', label: 'Option 2' },
+                  { value: 'option3', label: 'Option 3' }
+              ]}
+              className="custom-class"
+              value={selectValue}
+              setValue={setSelectValue}
+          />
+          <SearchBar
+              title={searchTitle}
+              setTitle={setSearchTitle}
+          />
+          <Button
+              label="Submit"
+              className="custom-button"
+              onClick={handleButtonClick}
+              icon={faCheck}
+          />
+          <p>Input value: {inputValue}</p>
+          <p>Select value: {selectValue}</p>
+          <p>Search value: {searchTitle}</p>
+      </div>
   );
 }
 
